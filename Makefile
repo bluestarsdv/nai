@@ -1,22 +1,30 @@
-# Makefile
+# Makefile - Nai Kernel para ARM64
 
-CC = gcc
-ASM = nasm
-LD = ld
+CC = aarch64-linux-gnu-gcc
+LD = aarch64-linux-gnu-ld
 
-CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -Wall -O -c
-LDFLAGS = -m elf_i386 -Ttext 0x100000
+# Flags para ARM64 (sem bibliotecas padrão de PC, focado em kernel puro)
+CFLAGS = -ffreestanding -nostdlib -nostdinc -Wall -Wextra -O2 -c
+LDFLAGS = -nostdlib -Ttext 0x80000  # Endereço de carregamento padrão comum em ARM
 
-all: nai-kernel.bin
+OBJETOS = kernel.o cpu.o touch.o setupwizard.o
 
-nai-kernel.bin: boot.o kernel.o
-	$(LD) $(LDFLAGS) -o nai-kernel.bin boot.o kernel.o
+all: nai-kernel.img
 
-boot.o: boot/boot.asm
-	$(ASM) -f elf32 boot/boot.asm -o boot.o
+nai-kernel.img: $(OBJETOS)
+	$(LD) $(LDFLAGS) -o nai-kernel.img $(OBJETOS)
 
 kernel.o: kernel/kernel.c
 	$(CC) $(CFLAGS) kernel/kernel.c -o kernel.o
 
+cpu.o: kernel/cpu.c
+	$(CC) $(CFLAGS) kernel/cpu.c -o cpu.o
+
+touch.o: drivers/touch.c
+	$(CC) $(CFLAGS) drivers/touch.c -o touch.o
+
+setupwizard.o: kernel/setupwizard.c
+	$(CC) $(CFLAGS) kernel/setupwizard.c -o setupwizard.o
+
 clean:
-	rm -f *.o nai-kernel.bin
+	rm -f *.o nai-kernel.img
