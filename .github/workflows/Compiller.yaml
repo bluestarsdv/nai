@@ -1,0 +1,25 @@
+name: Compilar Nai Kernel
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Baixar o código do repositório
+      uses: actions/checkout@v4
+
+    - name: Instalar compiladores e dependências
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc nasm make binutils xorriso grub-pc-bin
+
+    - name: Compilar o sistema
+      run: |
+        make
+        
