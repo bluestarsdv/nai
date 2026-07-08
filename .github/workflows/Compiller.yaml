@@ -17,9 +17,9 @@ jobs:
     - name: Instalar compiladores e ferramentas
       run: |
         sudo apt-get update
-        sudo apt-get install -y gcc-aarch64-linux-gnu make python3
+        sudo apt-get install -y gcc-aarch64-linux-gnu make
 
-    - name: Compilar o Sistema e Recovery
+    - name: Compilar o Sistema, Recovery e VBmeta
       run: |
         make
 
@@ -27,17 +27,7 @@ jobs:
       run: |
         mv payload.bin nai-system.img
         mv payload_recovery.bin nai-recovery.img
-
-    - name: Gerar vbmeta para desativar verificacao de boot (AVB)
-      run: |
-        # Baixa a ferramenta oficial avbtool de um espelho do GitHub em formato RAW (sem o link quebrado)
-        curl -sLO "https://raw.githubusercontent.com/AndroidBootloader/platform_external_avb/main/avbtool"
-        chmod +x avbtool
-        
-        # Cria um vbmeta.img que desativa o dm-verity e a verificação de assinatura
-        ./avbtool make_vbmeta_image \
-          --flags 2 \
-          --output vbmeta.img
+        mv vbmeta.bin vbmeta.img
 
     - name: Disponibilizar Imagens para Download
       uses: actions/upload-artifact@v4
