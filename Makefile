@@ -1,19 +1,35 @@
-# Makefile - Nai Kernel para ARM64
+# Makefile - Nai Kernel e Recovery para ARM64
 
 CC = aarch64-linux-gnu-gcc
 LD = aarch64-linux-gnu-ld
+OBJCOPY = aarch64-linux-gnu-objcopy
 
-# Flags para ARM64 (sem bibliotecas padrão de PC, focado em kernel puro)
 CFLAGS = -ffreestanding -nostdlib -nostdinc -Wall -Wextra -O2 -c
-LDFLAGS = -nostdlib -Ttext 0x80000  # Endereço de carregamento padrão comum em ARM
+LDFLAGS = -nostdlib -Ttext 0x80000
 
-OBJETOS = kernel.o cpu.o touch.o setupwizard.o
+# Objetos do Sistema Principal
+OBJ_SYSTEM = kernel.o cpu.o touch.o setupwizard.o
 
-all: nai-kernel.img
+# Objetos do Modo de Recuperação
+OBJ_RECOVERY = recovery.o
 
-nai-kernel.img: $(OBJETOS)
-	$(LD) $(LDFLAGS) -o nai-kernel.img $(OBJETOS)
+all: payload.bin payload_recovery.bin
 
+# Regra para o Sistema Principal
+payload.bin: nai-system.elf
+	$(OBJCOPY) -O binary nai-system.elf payload.bin
+
+nai-system.elf: $(OBJ_SYSTEM)
+	$(LD) $(LDFLAGS) -o nai-system.elf $(OBJ_SYSTEM)
+
+# Regra para o Modo de Recuperação
+payload_recovery.bin: nai-recovery.elf
+	$(OBJCOPY) -O binary nai-recovery.elf payload_recovery.bin
+
+nai-recovery.elf: $(OBJ_RECOVERY)
+	$(LD) $(LDFLAGS) -o nai-recovery.elf $(OBJ_RECOVERY)
+
+# Compilação dos arquivos individuais
 kernel.o: kernel/kernel.c
 	$(CC) $(CFLAGS) kernel/kernel.c -o kernel.o
 
@@ -26,5 +42,9 @@ touch.o: drivers/touch.c
 setupwizard.o: kernel/setupwizard.c
 	$(CC) $(CFLAGS) kernel/setupwizard.c -o setupwizard.o
 
+# Procura o código principal da pasta recovery
+recovery.o: recovery/recovery.c
+	$(CC) $(CFLAGS) recovery/recovery.c -o recovery.o
+
 clean:
-	rm -f *.o nai-kernel.img
+	rm -f *.o *.elf payload.bin payload_recovery.bin
