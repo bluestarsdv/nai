@@ -4,11 +4,12 @@ CC = aarch64-linux-gnu-gcc
 LD = aarch64-linux-gnu-ld
 OBJCOPY = aarch64-linux-gnu-objcopy
 
-CFLAGS = -ffreestanding -nostdlib -nostdinc -Wall -Wextra -O2 -c
+# REMOVIDO O -nostdinc DAQUI PARA CORRIGIR O ERRO DO STDINT.H
+CFLAGS = -ffreestanding -nostdlib -Wall -Wextra -O2 -c
 LDFLAGS = -nostdlib -Ttext 0x80000
 
 # Objetos do Sistema Principal
-OBJ_SYSTEM = kernel.o cpu.o touch.o setupwizard.o
+OBJ_SYSTEM = kernel.o cpu.o touch.o setupwizard.o panic.o
 
 # Objetos do Modo de Recuperação
 OBJ_RECOVERY = recovery.o
@@ -41,6 +42,9 @@ touch.o: drivers/touch.c
 
 setupwizard.o: kernel/setupwizard.c
 	$(CC) $(CFLAGS) kernel/setupwizard.c -o setupwizard.o
+
+panic.o: kernel/panic.c
+	$(CC) $(CFLAGS) kernel/panic.c -o panic.o
 
 # Procura o código principal da pasta recovery
 recovery.o: recovery/recovery.c
