@@ -17,15 +17,31 @@ jobs:
     - name: Instalar compiladores e ferramentas
       run: |
         sudo apt-get update
-        sudo apt-get install -y gcc-aarch64-linux-gnu make
+        sudo apt-get install -y gcc-aarch64-linux-gnu make cpio
 
     - name: Compilar o Sistema, Recovery e VBmeta
       run: |
         make
 
-    - name: Estruturar arquivos de imagem (.img)
+    - name: Estruturar Sysroot e Criar Imagem do Sistema
       run: |
-        mv payload.bin nai-system.img
+        # 1. Cria a estrutura de pastas (incluindo os pontos de montagem vazios)
+        mkdir -p sysroot/bin
+        mkdir -p sysroot/dev
+        mkdir -p sysroot/proc
+        mkdir -p sysroot/sys
+        mkdir -p sysroot/data
+
+        # 2. Move o seu executável do setupwizard para o lugar correto
+        mv payload.bin sysroot/bin/setupwizard
+
+        # 3. Transforma a pasta sysroot em um ramdisk cpio (nai-system.img)
+        cd sysroot
+        find . -print0 | cpio --null -ov --format=newc > ../nai-system.img
+        cd ..
+
+    - name: Estruturar arquivos de imagem restantes
+      run: |
         mv payload_recovery.bin nai-recovery.img
         mv vbmeta.bin vbmeta.img
 
