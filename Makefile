@@ -1,20 +1,17 @@
-# Makefile - Nai Kernel e Recovery para ARM64
+# Makefile - Nai Kernel, Recovery e VBmeta para ARM64
 
 CC = aarch64-linux-gnu-gcc
 LD = aarch64-linux-gnu-ld
 OBJCOPY = aarch64-linux-gnu-objcopy
 
-# REMOVIDO O -nostdinc DAQUI PARA CORRIGIR O ERRO DO STDINT.H
 CFLAGS = -ffreestanding -nostdlib -Wall -Wextra -O2 -c
 LDFLAGS = -nostdlib -Ttext 0x80000
 
-# Objetos do Sistema Principal
 OBJ_SYSTEM = kernel.o cpu.o touch.o setupwizard.o panic.o
-
-# Objetos do Modo de Recuperação
 OBJ_RECOVERY = recovery.o
+OBJ_VBMETA = vbmeta.o
 
-all: payload.bin payload_recovery.bin
+all: payload.bin payload_recovery.bin vbmeta.bin
 
 # Regra para o Sistema Principal
 payload.bin: nai-system.elf
@@ -29,6 +26,13 @@ payload_recovery.bin: nai-recovery.elf
 
 nai-recovery.elf: $(OBJ_RECOVERY)
 	$(LD) $(LDFLAGS) -o nai-recovery.elf $(OBJ_RECOVERY)
+
+# Regra para o VBmeta criado do zero
+vbmeta.bin: nai-vbmeta.elf
+	$(OBJCOPY) -O binary nai-vbmeta.elf vbmeta.bin
+
+nai-vbmeta.elf: $(OBJ_VBMETA)
+	$(LD) $(LDFLAGS) -o nai-vbmeta.elf $(OBJ_VBMETA)
 
 # Compilação dos arquivos individuais
 kernel.o: kernel/kernel.c
@@ -46,9 +50,12 @@ setupwizard.o: kernel/setupwizard.c
 panic.o: kernel/panic.c
 	$(CC) $(CFLAGS) kernel/panic.c -o panic.o
 
-# Procura o código principal da pasta recovery
 recovery.o: recovery/recovery.c
 	$(CC) $(CFLAGS) recovery/recovery.c -o recovery.o
 
+# ATUALIZADO: Agora busca na pasta correta vbmeta/
+vbmeta.o: vbmeta/vbmeta.c
+	$(CC) $(CFLAGS) vbmeta/vbmeta.c -o vbmeta.o
+
 clean:
-	rm -f *.o *.elf payload.bin payload_recovery.bin
+	rm -f *.o *.elf payload.bin payload_recovery.bin vbmeta.bin
