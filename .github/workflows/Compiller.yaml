@@ -30,12 +30,11 @@ jobs:
 
     - name: Gerar vbmeta para desativar verificacao de boot (AVB)
       run: |
-        # Baixa a ferramenta oficial avbtool da Google
-        curl -sLO https://android.googlesource.com/platform/external/avb/+/refs/heads/main/avbtool.py?format=TEXT
-        base64 -d < "avbtool.py?format=TEXT" > avbtool
+        # Baixa a ferramenta oficial avbtool de um espelho do GitHub em formato RAW (sem o link quebrado)
+        curl -sLO "https://raw.githubusercontent.com/AndroidBootloader/platform_external_avb/main/avbtool"
         chmod +x avbtool
         
-        # Cria um vbmeta.img que desativa o dm-verity e o verification
+        # Cria um vbmeta.img que desativa o dm-verity e a verificação de assinatura
         ./avbtool make_vbmeta_image \
           --flags 2 \
           --output vbmeta.img
