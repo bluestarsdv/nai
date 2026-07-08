@@ -1,4 +1,4 @@
-name: Compilar Nai Kernel
+name: Compilar Nai Kernel e Recovery
 
 on:
   push:
@@ -14,12 +14,25 @@ jobs:
     - name: Baixar o código do repositório
       uses: actions/checkout@v4
 
-    - name: Instalar compiladores e dependências
+    - name: Instalar compiladores e ferramentas
       run: |
         sudo apt-get update
-        sudo apt-get install -y gcc nasm make binutils xorriso grub-pc-bin
+        sudo apt-get install -y gcc-aarch64-linux-gnu make
 
-    - name: Compilar o sistema
+    - name: Compilar o Sistema e Recovery
       run: |
         make
-        
+
+    - name: Estruturar arquivos de imagem (.img)
+      run: |
+        mv payload.bin nai-system.img
+        mv payload_recovery.bin nai-recovery.img
+
+    - name: Disponibilizar Imagens para Download
+      uses: actions/upload-artifact@v4
+      with:
+        name: Nai-OS-Images
+        path: |
+          nai-system.img
+          nai-recovery.img
+          
